@@ -1,0 +1,308 @@
+import 'dart:io';
+import 'dart:math';
+
+/// Represents a mathematical matrix.
+class Matrix {
+  final List<List<num>> data;
+  final int rows;
+  final int cols;
+
+  /// Constructs a [Matrix] from a list of lists.
+  ///
+  /// Throws an [ArgumentError] if the input data is irregular (e.
+  /// g., rows have different number of columns) or if rows have zero columns
+  /// while the matrix has rows.
+  Matrix(this.data)
+      : rows = data.length,
+        cols = data.isNotEmpty ? data[0].length : 0 {
+    if (rows > 0) {
+      if (cols == 0) {
+        throw ArgumentError('Matrix cannot have rows with zero columns.');
+      }
+      for (var row in data) {
+        if (row.length != cols) {
+          throw ArgumentError('All rows in a matrix must have the same number of columns.');
+        }
+      }
+    }
+  }
+
+  /// Factory constructor for creating a zero matrix of specified dimensions.
+  ///
+  /// Throws an [ArgumentError] if rows or columns are not positive.
+  factory Matrix.zeros(int rows, int cols) {
+    if (rows <= 0 || cols <= 0) {
+      throw ArgumentError('Rows and columns must be positive for a non-empty matrix.');
+    }
+    return Matrix(
+      List.generate(rows, (_) => List<num>.filled(cols, 0)),
+    );
+  }
+
+  /// Performs matrix addition ([this] + [other]).
+  ///
+  /// Throws an [ArgumentError] if matrices do not have the same dimensions.
+  Matrix operator +(Matrix other) {
+    if (rows != other.rows || cols != other.cols) {
+      throw ArgumentError('Matrices must have the same dimensions for addition.');
+    }
+    final resultData = List.generate(rows, (r) =>
+        List.generate(cols, (c) => data[r][c] + other.data[r][c])
+    );
+    return Matrix(resultData);
+  }
+
+  /// Performs matrix subtraction ([this] - [other]).
+  ///
+  /// Throws an [ArgumentError] if matrices do not have the same dimensions.
+  Matrix operator -(Matrix other) {
+    if (rows != other.rows || cols != other.cols) {
+      throw ArgumentError('Matrices must have the same dimensions for subtraction.');
+    }
+    final resultData = List.generate(rows, (r) =>
+        List.generate(cols, (c) => data[r][c] - other.data[r][c])
+    );
+    return Matrix(resultData);
+  }
+
+  /// Performs scalar multiplication ([this] * [scalar]).
+  Matrix operator *(num scalar) {
+    final resultData = List.generate(rows, (r) =>
+        List.generate(cols, (c) => data[r][c] * scalar)
+    );
+    return Matrix(resultData);
+  }
+
+  /// Performs matrix multiplication ([this] * [other]).
+  ///
+  /// Throws an [ArgumentError] if the number of columns in the first matrix
+  /// does not equal the number of rows in the second matrix.
+  Matrix multiplyMatrix(Matrix other) {
+    if (cols != other.rows) {
+      throw ArgumentError('Number of columns in the first matrix must equal number of rows in the second matrix for multiplication.');
+    }
+
+    final resultData = List.generate(rows, (r) =>
+        List<num>.filled(other.cols, 0)
+    );
+
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < other.cols; j++) {
+        for (int k = 0; k < cols; k++) {
+          resultData[i][j] += data[i][k] * other.data[k][j];
+        }
+      }
+    }
+    return Matrix(resultData);
+  }
+
+  /// Computes the transpose of the matrix.
+  Matrix transpose() {
+    final transposedData = List.generate(cols, (c) =>
+        List.generate(rows, (r) => data[r][c])
+    );
+    return Matrix(transposedData);
+  }
+
+  @override
+  String toString() {
+    if (rows == 0 || cols == 0) {
+      return '[]';
+    }
+    // Determine maximum width for elements for alignment
+    int maxWidth = 0;
+    for (var row in data) {
+      for (var element in row) {
+        maxWidth = max(maxWidth, element.toStringAsFixed(2).length);
+      }
+    }
+
+    return data.map((row) =>
+        '[${row.map((e) => e.toStringAsFixed(2).padLeft(maxWidth)).join(', ')}]'
+    ).join('\n');
+  }
+}
+
+/// Helper function to read a number (integer or double) from the console.
+/// Repeats the prompt until a valid number is entered.
+num _readNumber(String prompt) {
+  num? number;
+  while (number == null) {
+    stdout.write(prompt);
+    String? input = stdin.readLineSync();
+    if (input == null || input.isEmpty) {
+      print('Input tidak boleh kosong. Silakan coba lagi.');
+      continue;
+    }
+    number = num.tryParse(input);
+    if (number == null) {
+      print('Input tidak valid. Harap masukkan angka. Silakan coba lagi.');
+    }
+  }
+  return number;
+}
+
+/// Helper function to read a positive integer from the console.
+/// Repeats the prompt until a valid positive integer is entered.
+int _readPositiveInt(String prompt) {
+  int? number;
+  while (number == null) {
+    stdout.write(prompt);
+    String? input = stdin.readLineSync();
+    if (input == null || input.isEmpty) {
+      print('Input tidak boleh kosong. Silakan coba lagi.');
+      continue;
+    }
+    number = int.tryParse(input);
+    if (number == null || number <= 0) {
+      print('Input tidak valid. Harap masukkan bilangan bulat positif. Silakan coba lagi.');
+    }
+  }
+  return number;
+}
+
+/// Reads matrix elements from the console.
+Matrix _readMatrix(String matrixName, int rows, int cols) {
+  print('Masukkan elemen untuk Matriks $matrixName ($rows x $cols):');
+  final List<List<num>> matrixData = [];
+  for (int r = 0; r < rows; r++) {
+    final List<num> rowData = [];
+    for (int c = 0; c < cols; c++) {
+      rowData.add(_readNumber('  Masukkan elemen[$r][$c]: '));
+    }
+    matrixData.add(rowData);
+  }
+  return Matrix(matrixData);
+}
+
+/// Prints a matrix to the console with a label.
+void _printMatrix(Matrix matrix, String label) {
+  print('\n$label:');
+  print(matrix);
+}
+
+/// Type definition for a binary matrix operation function.
+typedef BinaryMatrixOperation = Matrix Function(Matrix matrix1, Matrix matrix2);
+
+/// Handles binary matrix operations (addition, subtraction, matrix multiplication).
+void _handleBinaryMatrixOperation(
+  String operationName,
+  BinaryMatrixOperation operation, {
+  required bool requiresSameDimensions,
+  required bool requiresCompatibleDimensionsForMultiplication,
+}) {
+  print('\n--- $operationName ---');
+
+  int rows1 = _readPositiveInt('Masukkan jumlah baris Matriks A: ');
+  int cols1 = _readPositiveInt('Masukkan jumlah kolom Matriks A: ');
+  Matrix matrixA = _readMatrix('A', rows1, cols1);
+  _printMatrix(matrixA, 'Matriks A');
+
+  int rows2 = _readPositiveInt('Masukkan jumlah baris Matriks B: ');
+  int cols2 = _readPositiveInt('Masukkan jumlah kolom Matriks B: ');
+
+  if (requiresSameDimensions && (rows1 != rows2 || cols1 != cols2)) {
+    throw ArgumentError('Matriks harus memiliki dimensi yang sama untuk $operationName.');
+  }
+
+  if (requiresCompatibleDimensionsForMultiplication && cols1 != rows2) {
+    throw ArgumentError('Jumlah kolom Matriks A harus sama dengan jumlah baris Matriks B untuk perkalian.');
+  }
+
+  Matrix matrixB = _readMatrix('B', rows2, cols2);
+  _printMatrix(matrixB, 'Matriks B');
+
+  Matrix result = operation(matrixA, matrixB);
+  _printMatrix(result, 'Hasil $operationName');
+}
+
+/// Handles scalar multiplication of a matrix.
+void _handleScalarMultiplication() {
+  print('\n--- Perkalian Skalar (Skalar x Matriks) ---');
+  int rows = _readPositiveInt('Masukkan jumlah baris Matriks: ');
+  int cols = _readPositiveInt('Masukkan jumlah kolom Matriks: ');
+  Matrix matrix = _readMatrix('', rows, cols);
+  _printMatrix(matrix, 'Matriks Asli');
+
+  num scalar = _readNumber('Masukkan nilai skalar: ');
+
+  Matrix result = matrix * scalar; // Uses overloaded operator
+  _printMatrix(result, 'Hasil Perkalian Skalar');
+}
+
+/// Handles transposition of a matrix.
+void _handleTranspose() {
+  print('\n--- Transpose Matriks ---');
+  int rows = _readPositiveInt('Masukkan jumlah baris Matriks: ');
+  int cols = _readPositiveInt('Masukkan jumlah kolom Matriks: ');
+  Matrix matrix = _readMatrix('', rows, cols);
+  _printMatrix(matrix, 'Matriks Asli');
+
+  Matrix result = matrix.transpose();
+  _printMatrix(result, 'Hasil Transpose');
+}
+
+void main() {
+  print('Aplikasi Operasi Matriks Sederhana');
+  print('-------------------------------------');
+
+  String? choice;
+  do {
+    print('\nPilih operasi:');
+    print('1. Penjumlahan Matriks');
+    print('2. Pengurangan Matriks');
+    print('3. Perkalian Matriks (Matriks x Matriks)');
+    print('4. Perkalian Skalar (Skalar x Matriks)');
+    print('5. Transpose Matriks');
+    print('0. Keluar');
+    stdout.write('Pilihan Anda: ');
+    choice = stdin.readLineSync();
+
+    try {
+      switch (choice) {
+        case '1': // Addition
+          _handleBinaryMatrixOperation(
+            'Penjumlahan Matriks',
+            (m1, m2) => m1 + m2,
+            requiresSameDimensions: true,
+            requiresCompatibleDimensionsForMultiplication: false,
+          );
+          break;
+        case '2': // Subtraction
+          _handleBinaryMatrixOperation(
+            'Pengurangan Matriks',
+            (m1, m2) => m1 - m2,
+            requiresSameDimensions: true,
+            requiresCompatibleDimensionsForMultiplication: false,
+          );
+          break;
+        case '3': // Matrix Multiplication
+          _handleBinaryMatrixOperation(
+            'Perkalian Matriks',
+            (m1, m2) => m1.multiplyMatrix(m2),
+            requiresSameDimensions: false,
+            requiresCompatibleDimensionsForMultiplication: true,
+          );
+          break;
+        case '4': // Scalar Multiplication
+          _handleScalarMultiplication();
+          break;
+        case '5': // Transpose
+          _handleTranspose();
+          break;
+        case '0':
+          print('Keluar dari aplikasi.');
+          break;
+        default:
+          print('Pilihan tidak valid. Silakan coba lagi.');
+      }
+    } on ArgumentError catch (e) {
+      print('Error: ${e.message}');
+    } catch (e) {
+      print('Terjadi kesalahan yang tidak terduga: $e');
+    }
+    print('-------------------------------------');
+  } while (choice != '0');
+
+  print('Terima kasih telah menggunakan aplikasi operasi matriks.');
+}
