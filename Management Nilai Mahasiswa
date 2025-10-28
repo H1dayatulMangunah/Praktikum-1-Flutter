@@ -1,44 +1,27 @@
 void main() {
-  List<double> nilai = [80, 90, 70, 85, 95];
+  List<double> pemasukan = [500, 1000, 750];
+  List<double> pengeluaran = [300, 450, 200];
 
-  List<double> bobot = [0.2, 0.3, 0.5];
+  double totalMasuk = hitungTotal(pemasukan);
+  double totalKeluar = hitungTotal(pengeluaran);
 
-  print('Daftar Nilai Mahasiswa: $nilai');
+  double saldo = totalMasuk - totalKeluar;
 
-  double total = hitungTotal(nilai);
-  double rataRata = hitungRata(nilai);
-  double selisih = hitungSelisih(nilai);
-  double nilaiAkhir = hitungNilaiAkhir([85, 90, 88], bobot);
+  double rataMasuk = totalMasuk / pemasukan.length;
+  double rataKeluar = totalKeluar / pengeluaran.length;
 
-  print('\nHasil Perhitungan:');
-  print('Total Nilai: $total');
-  print('Rata-Rata: $rataRata');
-  print('Selisih (Nilai Tertinggi - Terendah): $selisih');
-  print('Nilai Akhir (dengan bobot): $nilaiAkhir');
+  print('=== Laporan Keuangan Harian ===');
+  print('Total Pemasukan : Rp$totalMasuk.000');
+  print('Total Pengeluaran : Rp$totalKeluar.000');
+  print('Saldo Akhir : Rp$saldo.000');
+  print('Rata-rata Pemasukan : Rp$rataMasuk.000');
+  print('Rata-rata Pengeluaran : Rp$rataKeluar.000');
 }
 
 double hitungTotal(List<double> data) {
   double total = 0;
   for (var nilai in data) {
-    total += nilai; // operasi penjumlahan +
+    total += nilai; 
   }
   return total;
-}
-
-double hitungRata(List<double> data) {
-  return hitungTotal(data) / data.length; 
-}
-
-double hitungSelisih(List<double> data) {
-  double max = data.reduce((a, b) => a > b ? a : b);
-  double min = data.reduce((a, b) => a < b ? a : b);
-  return max - min; 
-}
-
-double hitungNilaiAkhir(List<double> nilai, List<double> bobot) {
-  double hasil = 0;
-  for (int i = 0; i < nilai.length; i++) {
-    hasil += nilai[i] * bobot[i]; 
-  }
-  return hasil;
 }
