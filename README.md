@@ -59,3 +59,32 @@ Singkatnya, kode ini adalah implementasi OOP yang solid, menyediakan fungsionali
 
 
 **NB: Kalo misal pakai yang dart online maka bisa di run tapi tidak menggunakan import, bisa dilakukan import ketika menggunakan vscode**
+
+
+# Penjelasan Laporan Keuangan Harian
+Proyek ini adalah contoh penerapan **dasar pemrograman Dart** untuk menghitung data keuangan harian seseorang.
+Program melakukan operasi perhitungan sederhana seperti **penjumlahan (+)**, **pengurangan (−)**, dan **pembagian (÷)**.
+
+Fitur Program
+1. Menghitung total pemasukan dan pengeluaran.
+2. Menghitung saldo akhir (pemasukan - pengeluaran).
+3. Menghitung rata-rata dari setiap jenis transaksi.
+
+Penjelasan Kode
+| Bagian | Penjelasan |
+|--------|-------------|
+| `List<double> pemasukan` | Menyimpan daftar nominal pemasukan |
+| `List<double> pengeluaran` | Menyimpan daftar nominal pengeluaran |
+| `hitungTotal()` | Fungsi untuk menjumlahkan isi list |
+| `saldo = totalMasuk - totalKeluar` | Menggunakan operasi pengurangan |
+| `rataMasuk = totalMasuk / pemasukan.length` | Menggunakan operasi pembagian |
+| `print()` | Menampilkan hasil di terminal |
+
+
+## Contoh Output
+=== Laporan Keuangan Harian ===
+Total Pemasukan : Rp2250.000
+Total Pengeluaran : Rp950.000
+Saldo Akhir : Rp1300.000
+Rata-rata Pemasukan : Rp750.000
+Rata-rata Pengeluaran : Rp316.6666666666667.000
